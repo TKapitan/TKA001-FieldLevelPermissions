@@ -1,0 +1,35 @@
+{
+  "id": "d83ecd08-9a9a-4c55-a15f-21e3e27dd46c",
+  "name": "Field Level Permissions",
+  "publisher": "Tomáš 'Kepty.cz' Kapitán",
+  "brief": "Permissions for editing specific fields.",
+  "description": "Functionality that allows to specify which user/user groups can or can not edit specific field in the system.",
+  "version": "1.0.0.0",
+  "privacyStatement": "",
+  "EULA": "",
+  "help": "",
+  "contextSensitiveHelpUrl": "",
+  "url": "http://www.kepty.cz",
+  "logo": "",
+  "dependencies": [],
+  "screenshots": [],
+  "platform": "17.0.0.0",
+  "application": "17.0.0.0",
+  "idRanges": [
+    {
+      "from": 79000,
+      "to": 80000
+    }
+  ],
+  "target": "Cloud",
+  "features": [
+    "TranslationFile"
+  ],
+  "showMyCode": false,
+  "suppressWarnings": [
+    "AS0053",
+    "AS0084",
+    "AS0092"
+  ],
+  "runtime": "7.0"
+}

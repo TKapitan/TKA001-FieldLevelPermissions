@@ -1,0 +1,16 @@
+{
+    "folders": [
+        {
+            "path": "App"
+        },
+        {
+            "path": "Test"
+        },
+        {
+            "path": ".git"
+        }
+    ],
+    "settings": {
+        "al.packageCachePath": ".\\.alpackages",
+    }
+}

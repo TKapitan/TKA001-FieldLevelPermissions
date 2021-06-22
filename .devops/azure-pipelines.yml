@@ -1,0 +1,217 @@
+name: $(Build.BuildId)
+
+trigger:
+ branches:
+   include:
+     - master
+
+variables:
+- name:     alops-docker-password
+  value:    Passw0rd
+- name:     alops-docker-username
+  value:    admin
+- name:     alops-licenseid
+  value:    03731af4-e14d-460c-aab4-c7fbf8896c85
+- name:     artifact-country
+  value:    w1
+- name:     artifact-type
+  value:    onprem
+- name:     containerized-build-agent-image
+  value:    tobiasfenster/azdevops-build-agent:0.9.2-1809
+- name:     license-file
+  value:    c:\\azurefileshare\\lic\\bc17w1.flf
+- name:     pool-name
+  value:    ObjectRangeManagement
+- name:     swarm-url
+  value:    https://ppi-c4bc.westeurope.cloudapp.azure.com
+- name:     swarm-version
+  value:    0.11
+- name:     azdevops-automation-version
+  value:    0.11
+- name:     UID
+  value:    $[format('{0}-{1}-{2}', variables['Build.BuildId'], variables['Build.BuildNumber'], variables['System.TeamProjectId'])]
+- name:     correlation-id
+  value:    $[ format('{0}|{1}|{2}', variables['System.CollectionUri'], variables['System.TeamProjectId'], variables['AppVersion']) ]
+
+stages: 
+- stage: Create_Build_Agent_Container
+  displayName: Create Build Agent Container
+  pool: server
+  jobs:
+  - job: Create_Build_Agent_Container
+    displayName: Create Build Agent Container
+    steps:
+    - task: InvokeRESTAPI@1
+      displayName: COSMO - Create Build Agent Container
+      inputs:
+        connectionType: connectedServiceName
+        serviceConnection: Swarm
+        method: POST
+        headers: '{"Content-Type":"application/json", "Authorization": "Basic $(system.AccessToken)", "Collection-URI": "$(system.CollectionUri)"}'
+        body: '{
+            "mountDockerEngine":  true,
+            "serviceName":  "buildagent-$(UID)",
+            "environmentVars":  [
+                                    "AZP_URL=$(system.CollectionUri)",
+                                    "AZP_TOKEN=$(system.AccessToken)",
+                                    "AZP_AGENT_NAME=$(UID)",
+                                    "UID=$(UID)",
+                                    "AZP_POOL=$(pool-name)",
+                                    "cc.correlation-id=$(system.CollectionUri)|$(system.TeamProjectId)|$(system.JobId)"
+                                ],
+            "projectId":  "$(System.TeamProjectId)",
+            "orgId":  "$(System.CollectionId)",
+            "additionalLabels":  {
+                                    "UID":  "$(UID)"
+                                },
+            "additionalMounts": [
+              {
+                "source": "f:\\bcartifacts.cache",
+                "target": "c:\\bcartifacts.cache",
+                "type": "bind"
+              }
+            ],
+            "memoryGb":  2,
+            "image":  "$(containerized-build-agent-image)"
+          }'
+        urlSuffix: "docker/$(swarm-version)/Service"
+        
+    - task: InvokeRESTAPI@1
+      displayName: COSMO - Wait for Build Agent Container
+      inputs:
+        connectionType: connectedServiceName
+        serviceConnection: DevOpsAutomation
+        method: GET
+        headers: '{"Content-Type":"application/json", "Authorization": "Basic $(system.AccessToken)", "Collection-URI": "$(system.CollectionUri)"}'
+        urlSuffix: "automation/$(azdevops-automation-version)/Agent/getFromCollectionUri/$(pool-name)/$(UID)"
+
+- stage: Build
+  pool: 
+    name: $(pool-name)
+    demands: UID -equals $(UID)
+  dependsOn: Create_Build_Agent_Container
+  jobs: 
+  - job: Build
+    steps:
+    - checkout: self
+      clean: true 
+      
+    - task: ALOpsAppCompiler@2
+      displayName: 'ALOPS - Compile extensions directly'
+      inputs:
+        artifacttype: '$(artifact-type)'
+        artifactcountry: '$(artifact-country)'
+        alcodeanalyzer: 'CodeCop,PerTenantExtensionCop'
+        failonwarnings: true
+    
+    - task: PowerShell@2
+      displayName: COSMO - Get Docker image
+      inputs:
+        targetType: inline
+        script: |
+          $licensefile = "$(license-file)" | ConvertTo-Json
+          $body = "{ `"type`": `"$(artifact-type)`", `"country`": `"$(artifact-country)`", `"licensefile`": $licensefile }"
+          $header = @{ 
+            "Content-Type"="application/json"
+            "Authorization"="Basic $(system.AccessToken)"
+            "Collection-URI"="$(system.CollectionUri)"
+          }
+          $result = Invoke-WebRequest -Uri $(swarm-url)/docker/$(swarm-version)/task/image -Method 'Post' -Body $body -Headers $header -UseBasicParsing 
+          Write-Host "##vso[task.setvariable variable=generated_docker_image]$result"
+
+    - task: ALOpsDockerStart@1
+      displayName: 'ALOPS - Docker Start'
+      inputs:
+        docker_image: $(generated_docker_image)
+        docker_pull: false
+        docker_parameters: --env folders=c:\\run\\my=https://github.com/tfenster/nav-docker-samples/archive/setup_winrm.zip\\nav-docker-samples-setup_winrm --env alops-docker-username=$(alops-docker-username) --env alops-docker-password=$(alops-docker-password) --env licensefile=$(license-file) --volume s:\:c:\azurefileshare
+
+    - task: ALOpsDockerWait@1
+      displayName: 'ALOPS - Wait for Docker Container to start'
+      inputs:
+        search_string: 'Ready for connections!'
+        
+    - task: ALOpsAppCompiler@1
+      displayName: 'ALOPS - Compile Extension: App'
+      inputs:
+        usedocker: true
+        nav_app_version: '1.0.[yyyyWW].*'
+        targetproject: 'app/app.json'                           # The App
+        failed_on_warnings: true
+        app_file_suffix: '_APP'                                 # A trick to uniquely identify the APP (from the TEST-app)
+
+    - task: ALOpsAppPublish@1
+      displayName: 'ALOPS - Publish Extension'
+      inputs:
+        usedocker: true
+        nav_artifact_app_filter: '*.app'
+        skip_verification: true
+
+    - task: ALOpsAppCompiler@1
+      displayName: 'ALOPS - Compile Extension: Test-App'
+      inputs:
+        usedocker: true
+        nav_app_version: '1.0.[yyyyWW].*'
+        targetproject: 'test/app.json'                           # The Test-App
+        failed_on_warnings: true    
+        app_file_suffix: '_TEST'                                 # A trick to uniquely identify the Test-App (from the App)
+
+    - task: ALOpsAppPublish@1
+      displayName: 'ALOPS - Publish Extension'
+      inputs:
+        usedocker: true
+        nav_artifact_app_filter: '*.app'
+        skip_verification: true   
+
+    - task: ALOpsAppTest@1
+      displayName: 'ALOPS - Run TestSuite'
+      inputs:
+        usedocker: true
+        import_action: "Skip"
+        import_testtoolkit: false
+        testpage: '130455'
+        testsuite: 'DEFAULT'
+        failed_test_action: 'Ignore'
+      continueOnError: true   
+
+    - task: PublishTestResults@2
+      displayName: 'Publish Test Results **/TestResults.xml'
+      inputs:
+        testResultsFormat: XUnit
+        testResultsFiles: '**/TestResults.xml'
+        testRunTitle: 'BC Test Results: $(Build.BuildId)'
+
+    - task: ALOpsDockerRemove@1
+      displayName: 'ALOPS - Remove Docker Container'
+      enabled: true
+      condition: always()
+
+- stage: Remove_Build_Agent_Container 
+  displayName: Remove Build Agent Container
+  pool: server
+  dependsOn: Build
+  condition: always()
+  jobs:
+  - job: Remove_Build_Agent_Container
+    displayName: Remove Build Agent Container
+    condition: always()
+    steps:
+    - task: InvokeRESTAPI@1
+      displayName: COSMO - Remove Build Agent Container
+      inputs:
+        connectionType: connectedServiceName
+        serviceConnection: Swarm
+        method: DELETE
+        headers: '{"Authorization": "Basic $(system.AccessToken)", "Collection-URI": "$(system.CollectionUri)"}'
+        urlSuffix: "docker/$(swarm-version)/Service/byLabel/UID/$(UID)"
+      condition: always()
+        
+    - task: InvokeRESTAPI@1
+      displayName: COSMO - Remove Agent from Pool
+      inputs:
+        connectionType: connectedServiceName
+        serviceConnection: DevOpsAutomation
+        method: DELETE
+        headers: '{"Authorization": "Basic $(system.AccessToken)", "Collection-URI": "$(system.CollectionUri)"}'
+        urlSuffix: "automation/$(azdevops-automation-version)/Agent/getFromCollectionUri/$(pool-name)/$(UID)"
+      condition: always()

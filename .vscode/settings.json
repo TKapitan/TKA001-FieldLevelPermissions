@@ -1,0 +1,27 @@
+{
+    "al.enableCodeAnalysis": true,
+    "al.enableCodeActions": true,
+    "al.codeAnalyzers": [
+        "${AppSourceCop}",
+        "${CodeCop}",
+        "${UICop}"
+    ],
+    "editor.formatOnSave": true,
+    "editor.useTabStops": true,
+    "editor.trimAutoWhitespace": true,
+    "editor.tabSize": 4,
+    "al.assemblyProbingPaths": [
+        "./.netpackages",
+        "C:\\Windows\\assembly",
+        "C:\\Program Files (x86)\\Reference Assemblies\\Microsoft\\Framework\\.NETFramework\\v4.7.2",
+        "C:\\Program Files (x86)\\Reference Assemblies\\Microsoft\\WindowsPowerShell"
+    ],
+    "CRS.AlSubFolderName": "None",
+    "CRS.FileNamePattern": "<ObjectNameShort>.<ObjectTypeShortPascalCase>.al",
+    "CRS.FileNamePatternExtensions": "<ObjectNameShort>.<ObjectTypeShortPascalCase>.al",
+    "CRS.RemovePrefixFromFilename": true,
+    "CRS.ObjectNamePrefix": "ART CU ", // TODO: choose one
+    "CRS.ObjectNamePrefix": "ART AA ", // TODO: choose one
+    "CRS.OnSaveAlFileAction": "Rename",
+    "alOutline.stripNonAlphanumericCharactersFromObjectNames": true
+}
