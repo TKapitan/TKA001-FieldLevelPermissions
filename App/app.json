@@ -5,11 +5,11 @@
   "brief": "Permissions for editing specific fields.",
   "description": "Functionality that allows to specify which user/user groups can or can not edit specific field in the system.",
   "version": "1.0.0.0",
-  "privacyStatement": "",
-  "EULA": "",
-  "help": "",
-  "contextSensitiveHelpUrl": "",
-  "url": "http://www.kepty.cz",
+  "privacyStatement": "https://github.com/TKapitan/TKA001-FieldLevelPermissions",
+  "EULA": "https://github.com/TKapitan/TKA001-FieldLevelPermissions/blob/Kepty/LICENSE.md",
+  "help": "https://github.com/TKapitan/TKA001-FieldLevelPermissions/issues",
+  "url": "https://github.com/TKapitan/TKA001-FieldLevelPermissions",
+  "contextSensitiveHelpUrl": "https://github.com/TKapitan/TKA001-FieldLevelPermissions/issues",
   "logo": "",
   "dependencies": [],
   "screenshots": [],
@@ -17,8 +17,8 @@
   "application": "17.0.0.0",
   "idRanges": [
     {
-      "from": 79000,
-      "to": 80000
+      "from": 89000,
+      "to": 89999
     }
   ],
   "target": "Cloud",
