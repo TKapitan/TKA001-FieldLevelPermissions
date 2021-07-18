@@ -10,7 +10,7 @@
   "help": "https://github.com/TKapitan/TKA001-FieldLevelPermissions/issues",
   "url": "https://github.com/TKapitan/TKA001-FieldLevelPermissions",
   "contextSensitiveHelpUrl": "https://github.com/TKapitan/TKA001-FieldLevelPermissions/issues",
-  "logo": "",
+  "logo": "res/logo.png",
   "dependencies": [],
   "screenshots": [],
   "platform": "17.0.0.0",

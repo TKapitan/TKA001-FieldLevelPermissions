@@ -20,7 +20,7 @@
     "CRS.FileNamePattern": "<ObjectNameShort>.<ObjectTypeShortPascalCase>.al",
     "CRS.FileNamePatternExtensions": "<ObjectNameShort>.<ObjectTypeShortPascalCase>.al",
     "CRS.RemovePrefixFromFilename": true,
-    "CRS.ObjectNamePrefix": "TKA ",
+    "CRS.ObjectNamePrefix": "TST ",
     "CRS.OnSaveAlFileAction": "Rename",
     "alOutline.stripNonAlphanumericCharactersFromObjectNames": true
 }

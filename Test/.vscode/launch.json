@@ -5,8 +5,8 @@
             "type": "al",
             "request": "launch",
             "name": "Your own server",
-            "server": "http://localhost",
-            "serverInstance": "BC150",
+            "server": "http://kepty-demo",
+            "serverInstance": "BC",
             "authentication": "UserPassword",
             "startupObjectId": 22,
             "startupObjectType": "Page",
@@ -14,6 +14,7 @@
             "launchBrowser": true,
             "enableLongRunningSqlStatements": true,
             "enableSqlInformationDebugger": true,
+            "tenant": "default"
         }
     ]
 }

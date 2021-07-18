@@ -5,18 +5,29 @@
   "brief": "Permissions for editing specific fields.",
   "description": "Functionality that allows to specify which user/user groups can or can not edit specific field in the system.",
   "version": "1.0.0.0",
-  "privacyStatement": "",
-  "EULA": "",
-  "help": "",
-  "contextSensitiveHelpUrl": "",
-  "url": "http://www.kepty.cz",
-  "logo": "",
+  "privacyStatement": "https://github.com/TKapitan/TKA001-FieldLevelPermissions",
+  "EULA": "https://github.com/TKapitan/TKA001-FieldLevelPermissions/blob/Kepty/LICENSE.md",
+  "help": "https://github.com/TKapitan/TKA001-FieldLevelPermissions/issues",
+  "url": "https://github.com/TKapitan/TKA001-FieldLevelPermissions",
+  "contextSensitiveHelpUrl": "https://github.com/TKapitan/TKA001-FieldLevelPermissions/issues",
+  "logo": "res/logo.png",
   "dependencies": [
     {
       "id": "d83ecd08-9a9a-4c55-a15f-21e3e27dd46c",
       "name": "Field Level Permissions",
       "publisher": "Tomáš 'Kepty.cz' Kapitán",
       "version": "1.0.0.0"
+    },
+    {
+      "id":  "23de40a6-dfe8-4f80-80db-d70f83ce8caf",
+      "name":  "Test Runner",
+      "publisher":  "Microsoft",
+      "version":  "17.0.0.0"
+    },    {
+      "id":  "5d86850b-0d76-4eca-bd7b-951ad998e997",
+      "name":  "Tests-TestLibraries",
+      "publisher":  "Microsoft",
+      "version":  "17.0.0.0"
     }
   ],
   "screenshots": [],
@@ -24,8 +35,8 @@
   "application": "17.0.0.0",
   "idRanges": [
     {
-      "from": 79000,
-      "to": 80000
+      "from": 90000,
+      "to": 99999
     }
   ],
   "target": "Cloud",
