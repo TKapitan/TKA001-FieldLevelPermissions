@@ -79,6 +79,12 @@ table 89001 "TKA Restricted Field User"
             OptionCaption = 'Allowed,Blocked';
             DataClassification = SystemMetadata;
         }
+        field(10; "Line No."; Integer)
+        {
+            Caption = 'Line No.';
+            Editable = false;
+            DataClassification = SystemMetadata;
+        }
         field(25; "Derived from User Group Code"; Code[20])
         {
             Caption = 'Derived from User Group Code';
@@ -107,7 +113,7 @@ table 89001 "TKA Restricted Field User"
 
     keys
     {
-        key(Key1; "Table No.", "Field No.", "Restriction Type", Type, Code, "Derived from User Group Code")
+        key(Key1; "Table No.", "Field No.", "Restriction Type", Type, "Line No.", Code, "Derived from User Group Code")
         {
             Clustered = true;
         }
@@ -151,6 +157,7 @@ table 89001 "TKA Restricted Field User"
         RestrictedFieldUser.Validate("Table No.", UserGroupRestrictedFieldUser."Table No.");
         RestrictedFieldUser.Validate("Field No.", UserGroupRestrictedFieldUser."Field No.");
         RestrictedFieldUser.Validate(Type, RestrictedFieldUser.Type::User);
+        RestrictedFieldUser.Validate("Line No.", UserGroupRestrictedFieldUser."Line No.");
         RestrictedFieldUser.Validate(Code, NewUserGroupMember."User Name");
         RestrictedFieldUser.Validate("Derived from User Group Code", UserGroupRestrictedFieldUser.Code);
         RestrictedFieldUser.Validate("User Security ID", NewUserGroupMember."User Security ID");
@@ -181,6 +188,7 @@ table 89001 "TKA Restricted Field User"
             RestrictedFieldUser.SetRange("Table No.", Rec."Table No.");
             RestrictedFieldUser.SetRange("Field No.", Rec."Field No.");
             RestrictedFieldUser.SetRange(Type, Type::User);
+            RestrictedFieldUser.SetRange("Line No.", Rec."Line No.");
             RestrictedFieldUser.SetRange("Derived from User Group Code", Code);
             RestrictedFieldUser.DeleteAll(false);
         end else begin

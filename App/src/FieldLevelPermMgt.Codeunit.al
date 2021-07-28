@@ -97,6 +97,7 @@ codeunit 89000 "TKA Field Level Perm. Mgt."
     begin
         RestrictedField.SetRange("Table No.", RecordRef.Number());
         RestrictedField.SetRange(Enable, true);
+        RestrictedField.SetAutoCalcFields("Rec Table Filters", "xRec Table Filters");
         if RestrictedField.FindSet() then
             repeat
                 IsHandled := false;
@@ -104,13 +105,51 @@ codeunit 89000 "TKA Field Level Perm. Mgt."
                 xFieldRef := xRecordRef.Field(RestrictedField."Field No.");
                 if Format(FieldRef.Value()) <> Format((xFieldRef.Value())) then begin
                     OnCheckFieldPermissionBeforeCheck(ActionType, FieldRef, xFieldRef, IsHandled);
-                    if not IsHandled then begin
-                        RestrictionType := RestrictedField.Type;
-                        if RestrictionType.ShouldCheckFieldPermissionAccess(ActionType, FieldRef, xFieldRef) then
-                            FindUserAccessToField(RestrictedField);
-                    end;
+                    if not IsHandled then
+                        if IsRecordInRecXRecFilters(RestrictedField, ActionType, RecordRef, xRecordRef) then begin
+                            RestrictionType := RestrictedField.Type;
+                            if RestrictionType.ShouldCheckFieldPermissionAccess(ActionType, FieldRef, xFieldRef) then
+                                FindUserAccessToField(RestrictedField);
+                        end;
                 end;
             until RestrictedField.Next() < 1;
+    end;
+
+    local procedure IsRecordInRecXRecFilters(var RestrictedField: Record "TKA Restricted Field"; ActionType: Enum "TKA Action Type"; RecordRef: RecordRef; xRecordRef: RecordRef): Boolean
+    var
+        TempRecordRef, TempxRecordRef : RecordRef;
+        IsRecHandled, IsXRecHandled, ReturnValue : Boolean;
+    begin
+        // Check xRec
+        if RestrictedField."xRec Table Filters".HasValue() then begin
+            TempxRecordRef.Open(xRecordRef.Number(), true);
+            TempxRecordRef.Copy(xRecordRef);
+            TempxRecordRef.Insert();
+
+            OnBeforeIsRecordInXRecFilters(RestrictedField, ActionType, TempxRecordRef, ReturnValue, IsXRecHandled);
+            if IsXRecHandled and not ReturnValue then
+                exit(false);
+            if not (ActionType in [ActionType::Insert, ActionType::Delete]) then begin
+                TempxRecordRef.SetView(RestrictedField.GetXRecFilters());
+                if TempxRecordRef.IsEmpty() then
+                    exit(false);
+            end;
+        end;
+        // Check Rec
+        if RestrictedField."Rec Table Filters".HasValue() then begin
+            Clear(ReturnValue);
+            TempRecordRef.Open(RecordRef.Number(), true);
+            TempRecordRef.Copy(RecordRef);
+            TempRecordRef.Insert();
+
+            OnBeforeIsRecordInRecFilters(RestrictedField, ActionType, TempRecordRef, ReturnValue, IsRecHandled);
+            if IsRecHandled and not ReturnValue then
+                exit(false);
+            TempRecordRef.SetView(RestrictedField.GetRecFilters());
+            if TempRecordRef.IsEmpty() then
+                exit(false);
+        end;
+        exit(true);
     end;
 
     local procedure FindUserAccessToField(RestrictedField: Record "TKA Restricted Field")
@@ -128,6 +167,7 @@ codeunit 89000 "TKA Field Level Perm. Mgt."
         RestrictedFieldUser.SetRange("Table No.", RestrictedField."Table No.");
         RestrictedFieldUser.SetRange("Field No.", RestrictedField."Field No.");
         RestrictedFieldUser.SetRange(Type, RestrictedFieldUser.Type::User);
+        RestrictedFieldUser.SetRange("Line No.", RestrictedField."Line No.");
         RestrictedFieldUser.SetRange("User Security ID", UserSecurityId());
         RestrictedFieldUser.SetRange(Enable, true);
 
@@ -172,6 +212,16 @@ codeunit 89000 "TKA Field Level Perm. Mgt."
 
     [IntegrationEvent(false, false)]
     local procedure OnAfterGetDatabaseTableTriggerSetupForFieldLevelPermission(TableId: Integer; var OnDatabaseInsert: Boolean; var OnDatabaseDelete: Boolean; var OnDatabaseModify: Boolean; var OnDatabaseRename: Boolean)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnBeforeIsRecordInXRecFilters(var RestrictedField: Record "TKA Restricted Field"; ActionType: Enum "TKA Action Type"; TempxRecordRef: RecordRef; var ReturnValue: Boolean; var IsXRecHandled: Boolean)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnBeforeIsRecordInRecFilters(var RestrictedField: Record "TKA Restricted Field"; ActionType: Enum "TKA Action Type"; TempRecordRef: RecordRef; var ReturnValue: Boolean; var IsRecHandled: Boolean)
     begin
     end;
 

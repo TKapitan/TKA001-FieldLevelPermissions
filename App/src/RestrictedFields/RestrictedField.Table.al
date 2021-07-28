@@ -44,6 +44,13 @@ table 89000 "TKA Restricted Field"
             OptionCaption = 'Allowed,Blocked';
             DataClassification = SystemMetadata;
         }
+        field(10; "Line No."; Integer)
+        {
+            Caption = 'Line No.';
+            Editable = false;
+            InitValue = 1;
+            DataClassification = SystemMetadata;
+        }
         field(50; Enable; Boolean)
         {
             Caption = 'Enable';
@@ -56,12 +63,21 @@ table 89000 "TKA Restricted Field"
             FieldClass = FlowField;
             CalcFormula = count("TKA Restricted Field User" where("Table No." = field("Table No."), "Field No." = field("Field No."), "Restriction Type" = field(Type), Type = const(User), Enable = const(true)));
         }
-
+        field(1000; "xRec Table Filters"; Blob)
+        {
+            Caption = 'xRec Table Filters';
+            DataClassification = CustomerContent;
+        }
+        field(1001; "Rec Table Filters"; Blob)
+        {
+            Caption = 'Rec Table Filters';
+            DataClassification = CustomerContent;
+        }
     }
 
     keys
     {
-        key(Key1; "Table No.", "Field No.", Type)
+        key(Key1; "Table No.", "Field No.", Type, "Line No.")
         {
             Clustered = true;
         }
@@ -93,6 +109,10 @@ table 89000 "TKA Restricted Field"
         Field: Record Field;
         FieldSelection: Codeunit "Field Selection";
     begin
+        if (Rec."Table No." <> xRec."Table No.") or (Rec."Field No." <> xRec."Field No.") then begin
+            Clear(Rec."xRec Table Filters");
+            Clear(Rec."Rec Table Filters");
+        end;
         OnBeforeLookupTableAndField(Field, Rec);
         if not FieldSelection.Open(Field) then begin
             Rec."Table No." := 0;
@@ -101,6 +121,32 @@ table 89000 "TKA Restricted Field"
         end;
         Rec.Validate("Table No.", Field.TableNo);
         Rec.Validate("Field No.", Field."No.");
+    end;
+
+    /// <summary>
+    /// Returns defined filters for xRec in Set/GetView string format
+    /// </summary>
+    /// <returns>Return variable RecTableFilters of type Text.</returns>
+    procedure GetRecFilters() RecTableFilters: Text
+    var
+        InStream: InStream;
+    begin
+        Rec.CalcFields("Rec Table Filters");
+        Rec."Rec Table Filters".CreateInStream(InStream);
+        InStream.ReadText(RecTableFilters);
+    end;
+
+    /// <summary>
+    /// Returns defined filters for Rec in Set/GetView string format/// 
+    /// </summary>
+    /// <returns>Return variable xRecTableFilters of type Text.</returns>
+    procedure GetXRecFilters() xRecTableFilters: Text
+    var
+        InStream: InStream;
+    begin
+        Rec.CalcFields("xRec Table Filters");
+        Rec."xRec Table Filters".CreateInStream(InStream);
+        InStream.ReadText(xRecTableFilters);
     end;
 
     [IntegrationEvent(false, false)]
